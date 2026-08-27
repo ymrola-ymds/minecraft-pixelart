@@ -2,7 +2,7 @@
 
 ## 本書の位置づけについて
 
-本書は minecraft-pixelart **Ver1.0 の基本設計の正本**である。要件（`documents/00_requirements/requirements_ver1.0.md`）を、モジュール構成・データ構造・入出力仕様のレベルまで落とす。実装コードの詳細（関数の中身、変数名）は本書の対象外。
+本書は minecraft-pixelart **Ver1.0 の基本設計の正本**である。要件（`documents/00_requirements/requirements_ver1.0.md`）を、モジュール構成・データ構造・入出力仕様のレベルまで落とす。実装コードの詳細（関数の中身、変数名）は本書の対象外。**2026-08-27 凍結**（簡単なテスト済、実装レビューでブロッカーなし。v1.1 は作らない）。
 
 要件と食い違う記述が本書にあれば、要件が優先する。本書で新たに決めた細部は「本書で決めたこと」に、要件に無く判断が要るものは「確認したい点」に列挙する。
 
@@ -52,9 +52,11 @@ minecraft-pixelart/
 │   └── rules_26.2.json             # タグ付け規則（生成時に使う。メンテナ用）
 ├── tools/
 │   └── build_palette.py            # client.jar → palette JSON（メンテナ用。PEP 723）
-├── tests/
+├── images/
 └── documents/
 ```
+
+`tests/` は **v1 では無い**（既知。自動テストスイートは置かない）。
 
 `uv run pixelart.py` / `python pixelart.py` のいずれでも、`sys.path` にスクリプトのディレクトリが入るため `mcpixelart` パッケージと `data/` を相対で解決できる。パレットの既定パスは `<pixelart.py のあるディレクトリ>/data/palette/palette_26.2.json`。
 
@@ -112,7 +114,8 @@ Placement:                    # layout が組み立てる不変オブジェク�
 
 - 色は Python に埋め込まない。JSON を差し替えれば新バージョンに追随できる
 - `rgb` は **side テクスチャの不透明画素のみ**の単純平均（草ブロックも side）
-- 全ブロックを収録し、除外は `tags` で表現する。JSON を作る時点では何も除外しない。除外の判断はコード側（下記「既定フィルタ」）が持ち、生存向けフィルタ（v2）を除外集合の変更だけで足せるようにする
+- **v1 同梱** `palette_26.2.json` は種由来の約 113 色（`source.sha1` は `builtin_ver1.0`）。利用時の既定はこれ
+- jar から全ブロックを再生成するのはメンテナ用（下記）。再生成結果を v1 同梱にしない
 
 ### タグ
 
@@ -173,7 +176,7 @@ d = (2 + r̄/256)·Δr² + 4·Δg² + (2 + (255-r̄)/256)·Δb²
 5. `assets/minecraft/textures/<name>.png` を読む。`.mcmeta` を持つアニメーションテクスチャは先頭フレームのみ使う
 6. アルファ 0 の画素を除いて RGB を平均する。不透明画素が無いブロックは収録しない
 7. `rules_26.2.json`（ID の完全一致と接尾辞パターンで書いたタグ規則）を当ててタグを付ける
-8. 規則にも既知の許可リストにも当たらない新規 ID は、警告を出したうえで `functional` 扱いにして既定から外す（安全側に倒す）
+8. 規則（完全一致・接尾辞）に当たらない ID は `functional` 扱いにして既定から外す（安全側）。**許可リスト無しで再生成するとコンクリートも落ちうる**。v1 同梱の 113 色は種由来であり、このツールの素の出力ではない
 
 `--jar` `--version` `--rules` `--out` を取る。実行結果は JSON 差分としてレビューできる。
 
@@ -257,7 +260,7 @@ fill ~-5 ~ ~ ~ ~8 ~ minecraft:glass
 
 ### 7. プレビュー
 
-割当後のブロック色で 1 セル = 1 ピクセルの RGBA PNG を書く。空気セルは完全透明。回転・反転を適用した後の見た目にする。出力先は `<out>/preview.png`（`--preview` で変更可）。
+割当後のブロック色で 1 セル = 1 ピクセルの RGBA PNG を書く。空気セルは完全透明。回転・反転を適用した後の見た目にする。既定の出力先は `<out>/previews/<画像名>.png`（`--preview` で変更可）。画像名は入力の stem（sanitize しない。拡張子だけ除く）。
 
 ## データパック出力
 
@@ -265,7 +268,8 @@ fill ~-5 ~ ~ ~ ~8 ~ minecraft:glass
 
 ```
 <out>/
-├── preview.png
+├── previews/
+│   └── <画像名>.png
 └── <pack-name>/
     ├── pack.mcmeta
     └── data/<namespace>/
@@ -285,13 +289,13 @@ fill ~-5 ~ ~ ~ ~8 ~ minecraft:glass
 {
   "pack": {
     "description": "minecraft-pixelart <入力ファイル名> <W>x<H>",
-    "min_format": [107, 1],
-    "max_format": 107
+    "min_format": [101, 1],
+    "max_format": 120
   }
 }
 ```
 
-古い整数の `pack_format` は書かない（要件どおり）。
+古い整数の `pack_format` は書かない。この範囲は 26.2 の 107.1 を含む。全バージョン共通の pack ではない（要件どおり）。
 
 ### 関数分割
 
@@ -324,11 +328,11 @@ pixelart.py IMAGE --width W --height H [オプション]
 | `--mirror` | 無効 | 指定で左右反転 |
 | `--coords` | `relative` | `relative` / `absolute` |
 | `--origin X Y Z` | なし | `--coords absolute` のとき必須 |
-| `--pack-name` | `pixelart` | データパックのディレクトリ名 |
-| `--namespace` | `pixelart` | 名前空間 |
-| `--function` | `build` | エントリ関数名 |
+| `--pack-name` | 画像 stem を sanitize | データパックのディレクトリ名。`[a-z0-9_.-]`。空（非 ASCII のみ等）なら `pixelart_<hash>`。指定すれば変えられる |
+| `--namespace` | 画像 stem を sanitize | 名前空間。未指定時は `--pack-name` と同じ規則。実行は `/function <namespace>:build` |
+| `--function` | `build` | エントリ関数名。指定すれば変えられる |
 | `--out` | `./output` | 出力ルート |
-| `--preview` | `<out>/preview.png` | プレビューの出力先 |
+| `--preview` | `<out>/previews/<画像名>.png` | プレビューの出力先 |
 | `--palette` | 同梱 JSON | パレット JSON のパス |
 | `--max-commands` | `65000` | 分割の閾値 |
 | `--gravity-blocks` | 未指定なら質問 | `use` / `exclude`。落下ブロック（砂・砂利・コンクリートパウダー等）を候補に入れるか。非対話時は `exclude` |
@@ -438,7 +442,7 @@ pixelart.py IMAGE --width W --height H [オプション]
 | メモリ | 1000×1000 でも距離行列を一枚で持たず、分割 argmin で格子程度に収まる |
 | CLI | 必須引数欠落で終了コード 2。`absolute` で `--origin` 無しはエラー |
 
-種スクリプト `pixel-art.py` は仕様の参照元として残すが、テスト対象にはしない。
+種スクリプト `pixel-art.py` は仕様の参照元として残すが、テスト対象にはしない。`tests/` ディレクトリは **v1 では無い**（既知）。上表は観点の記録であり、自動テストは置かない。
 
 ## 本書で決めたこと（要件に無かった細部）
 
@@ -458,6 +462,11 @@ pixelart.py IMAGE --width W --height H [オプション]
 14. `load.json` / `tick.json` は置かない
 15. README は PEP 723 配布に合わせる。Bedrock はしない
 16. fill / setblock の相対は 0 が `~`、負が `~-N`
+17. `pack.mcmeta` は `min_format` [101, 1]、`max_format` 120（26.2 の 107.1 は範囲内。全バージョン共通ではない）
+18. 未指定の `--pack-name` / `--namespace` は画像 stem を sanitize。`--function` 既定は `build`。`pixelart` 固定はやめる
+19. プレビュー既定は `<out>/previews/<画像名>.png`
+20. v1 同梱パレットは種由来の約 113 色。jar 全ブロック再生成はメンテナ用で、許可リスト無しだとコンクリートも落ちうる
+21. `tests/` は v1 では無い
 
 ## 確認したい点
 
