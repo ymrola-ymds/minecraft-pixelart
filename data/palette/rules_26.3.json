@@ -57,7 +57,16 @@
     "minecraft:shelf_mushroom": ["non_full_cube"],
     "minecraft:straw_bed": ["functional", "non_full_cube"],
     "minecraft:red_shrub": ["non_full_cube"],
-    "minecraft:resin_clump": ["non_full_cube"]
+    "minecraft:resin_clump": ["non_full_cube"],
+    "minecraft:cinnabar": [],
+    "minecraft:polished_cinnabar": [],
+    "minecraft:cinnabar_bricks": [],
+    "minecraft:chiseled_cinnabar": [],
+    "minecraft:poplar_planks": [],
+    "minecraft:pale_oak_planks": [],
+    "minecraft:resin_block": [],
+    "minecraft:resin_bricks": [],
+    "minecraft:chiseled_resin_bricks": []
   },
   "suffix_patterns": [
     { "suffix": "_stained_glass_pane", "tags": ["non_full_cube", "transparent"] },
