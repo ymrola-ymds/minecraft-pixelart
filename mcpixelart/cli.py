@@ -214,15 +214,47 @@ def prompt_gravity_blocks(
             print("1 または 2 を入力してください。\n", file=sys.stderr)
 
 
+def prompt_transparent_blocks(
+    specified_transparent: str | None,
+    is_interactive: bool,
+) -> bool:
+    """Resolve whether to use transparent blocks through argument or interactive prompt."""
+    if specified_transparent == "use":
+        return True
+    elif specified_transparent == "exclude":
+        return False
+
+    if not is_interactive:
+        print("警告: 透明ブロックの設定が未指定のため、既定値（使わない）を採用しました。", file=sys.stderr)
+        return False
+
+    while True:
+        try:
+            print("ガラス・色付きガラスなどの透明ブロックを使いますか。")
+            print("背景が透けて見えるため、壁や立体物で裏側が見える場合があります。")
+            print("  1) 使わない（パレットから外す）  [既定]")
+            print("  2) 使う")
+            choice = input("選択 [1]: ").strip()
+        except EOFError:
+            return False
+
+        if choice in ("", "1"):
+            return False
+        elif choice == "2":
+            return True
+        else:
+            print("1 または 2 を入力してください。\n", file=sys.stderr)
+
+
 def get_default_palette_path() -> Path:
     base_dir = Path(__file__).resolve().parent.parent
-    return base_dir / "data" / "palette" / "palette_26.2.json"
+    return base_dir / "data" / "palette" / "palette_26.3.json"
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="pixelart.py",
-        description="画像を Minecraft Java Edition 26.2 用のデータパックに変換します。",
+        description="画像を Minecraft Java Edition 26.3 用のデータパックに変換します。",
     )
 
     parser.add_argument(
@@ -317,6 +349,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="落下ブロック（砂・砂利等）の利用 (use / exclude)",
     )
     parser.add_argument(
+        "--transparent-blocks",
+        choices=["use", "exclude"],
+        default=None,
+        help="透明ブロック（ガラス・色付きガラス）の利用 (use / exclude, 既定: exclude)",
+    )
+    parser.add_argument(
         "-y",
         "--yes",
         action="store_true",
@@ -380,6 +418,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             is_interactive=is_interactive,
         )
 
+        # Prompt / resolve transparent blocks
+        use_transparent = prompt_transparent_blocks(
+            args.transparent_blocks,
+            is_interactive=is_interactive,
+        )
+
         if orientation == "wall" and use_gravity:
             print("警告: 壁配置で落下ブロックを使用しています。下に支えが無いと落下します。", file=sys.stderr)
 
@@ -387,15 +431,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         facing_ja = {"south": "南向き", "north": "北向き", "east": "東向き", "west": "西向き"}.get(facing, facing)
         orient_str = "床（水平）" if orientation == "floor" else f"壁・{facing_ja}（垂直）"
         gravity_str = "使う" if use_gravity else "使わない"
+        transparent_str = "使う" if use_transparent else "使わない"
         print(f"画像: {image_path}")
-        print(f"向き: {orient_str} / 落下ブロック: {gravity_str}")
+        print(f"向き: {orient_str} / 落下ブロック: {gravity_str} / 透明ブロック: {transparent_str}")
         print(f"データパック名: {pack_name} / 関数: {namespace}:{function_name}")
 
         # Palette path
         palette_path = Path(args.palette) if args.palette else get_default_palette_path()
 
         # Load Palette
-        palette = load_palette(palette_path, use_gravity_blocks=use_gravity)
+        palette = load_palette(
+            palette_path,
+            use_gravity_blocks=use_gravity,
+            use_transparent_blocks=use_transparent,
+        )
 
         # Process image
         rgb_grid, opaque_grid, orig_size = process_image(
