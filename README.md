@@ -1,9 +1,9 @@
 # minecraft-pixelart
 
-画像を Minecraft (Java Edition 26.2) のブロック配置に変換し、データパックとして書き出す CLI ツールです。
+画像を Minecraft (Java Edition 26.3) のブロック配置に変換し、データパックとして書き出す CLI ツールです。
 
 > [!NOTE]
-> - 本ツールは **Java Edition 26.x**（26.1 〜 26.3 スナップショット等）に対応しています。Bedrock Edition (統合版) には対応していません。
+> - 本ツールは **Java Edition 26.x**（26.1 〜 26.3 正式版・スナップショット等）に対応しています。Bedrock Edition (統合版) には対応していません。
 > - Mod は不要で、生成されたデータパックをワールドの `datapacks/` に入れるだけで使用できます。
 
 ---
@@ -63,6 +63,7 @@ python pixelart.py images/cat.png -W 100 -H 100
 | `--coords` | `relative` | `relative`（相対座標）または `absolute`（絶対座標） |
 | `--origin X Y Z` | なし | `--coords absolute` 時の開始座標 |
 | `--gravity-blocks` | 対話 / `exclude` | 落下ブロック（砂・砂利等）を使うか（`use` / `exclude`） |
+| `--transparent-blocks` | 対話 / `exclude` | 透明ブロック（ガラス・色付きガラス等）を使うか（`use` / `exclude`） |
 | `--pack-name` | 画像名から自動設定 | データパックのフォルダ名（未指定時は入力ファイル名） |
 | `--namespace` | 画像名から自動設定 | 関数名前空間（未指定時は入力ファイル名） |
 | `--function` | `build` | エントリ関数名 |

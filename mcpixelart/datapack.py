@@ -18,7 +18,7 @@ def write_datapack(
     description: str,
     max_commands: int = 65000,
 ) -> tuple[Path, int]:
-    """Write Minecraft Java Edition 26.2 compatible datapack.
+    """Write Minecraft Java Edition 26.3 compatible datapack.
 
     Writes to both 'function' and 'functions' folders.
     Splits into part_XXXX.mcfunction files if command count exceeds max_commands.

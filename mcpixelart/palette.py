@@ -32,12 +32,14 @@ class Palette:
 def load_palette(
     palette_path: str | Path,
     use_gravity_blocks: bool = False,
+    use_transparent_blocks: bool = False,
 ) -> Palette:
     """Load palette JSON and filter blocks according to tag rules.
 
     Args:
         palette_path: Path to palette JSON file.
         use_gravity_blocks: Whether to include gravity-affected blocks.
+        use_transparent_blocks: Whether to include transparent blocks (glass).
 
     Returns:
         Palette instance containing filtered blocks.
@@ -63,6 +65,8 @@ def load_palette(
     exclude_tags = set(DEFAULT_EXCLUDE_TAGS)
     if not use_gravity_blocks:
         exclude_tags.add("gravity")
+    if not use_transparent_blocks:
+        exclude_tags.add("transparent")
 
     valid_ids: list[str] = []
     valid_rgbs: list[list[float]] = []

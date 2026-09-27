@@ -24,9 +24,9 @@ def parse_args() -> argparse.Namespace:
         description="client.jar からテクスチャ色を抽出し、パレット JSON を生成します。"
     )
     parser.add_argument("--jar", required=True, help="Minecraft client.jar のパス")
-    parser.add_argument("--version", default="26.2", help="Minecraft バージョン (既定: 26.2)")
-    parser.add_argument("--rules", default="data/palette/rules_26.2.json", help="タグ付け規則 JSON")
-    parser.add_argument("--out", default="data/palette/palette_26.2.json", help="出力先 JSON パス")
+    parser.add_argument("--version", default="26.3", help="Minecraft バージョン (既定: 26.3)")
+    parser.add_argument("--rules", default="data/palette/rules_26.3.json", help="タグ付け規則 JSON")
+    parser.add_argument("--out", default="data/palette/palette_26.3.json", help="出力先 JSON パス")
     return parser.parse_args()
 
 
@@ -84,6 +84,8 @@ def resolve_model_textures(zf: zipfile.ZipFile, model_name: str) -> dict[str, st
 
         if "textures" in model_data:
             for k, v in model_data["textures"].items():
+                if isinstance(v, dict) and "sprite" in v:
+                    v = v["sprite"]
                 if k not in textures:
                     textures[k] = v
 
@@ -93,9 +95,9 @@ def resolve_model_textures(zf: zipfile.ZipFile, model_name: str) -> dict[str, st
     for _ in range(5):
         changed = False
         for k, v in textures.items():
-            if v.startswith("#"):
+            if isinstance(v, str) and v.startswith("#"):
                 ref = v[1:]
-                if ref in textures and not textures[ref].startswith("#"):
+                if ref in textures and isinstance(textures[ref], str) and not textures[ref].startswith("#"):
                     textures[k] = textures[ref]
                     changed = True
         if not changed:
@@ -108,7 +110,7 @@ def choose_side_texture(textures: dict[str, str]) -> str | None:
     for candidate in ("side", "all", "texture", "north", "top", "front"):
         if candidate in textures:
             tex = textures[candidate]
-            if not tex.startswith("#"):
+            if isinstance(tex, str) and not tex.startswith("#"):
                 return tex
     return None
 
