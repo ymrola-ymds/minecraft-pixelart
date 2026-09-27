@@ -117,6 +117,41 @@ minecraft-pixelart/
     ```
 - 既定パレットパス: `data/palette/palette_26.3.json` に更新。
 
-### 3. `tools/build_palette.py`
+### 3. `mcpixelart/datapack.py`（pack.mcmeta）
+
+Ver2.0 は Ver1.0 と同値を出力する。
+
+```json
+{
+  "pack": {
+    "description": "Pixel Art Datapack",
+    "min_format": [101, 1],
+    "max_format": 120
+  }
+}
+```
+
+- 古い整数 `pack_format` は書かない
+- `load.json` / `tick.json` は置かない
+- 実装の定数が正本と食い違う場合は実装を正本に合わせる（数値変更は正本更新とセット）
+
+### 4. `data/palette/rules_26.3.json`（新規9種の登録）
+
+再生成の再現性のため、次の 9 ID を `exact_matches` に `tags: []` で登録する（実装役）。
+
+- `minecraft:cinnabar`
+- `minecraft:polished_cinnabar`
+- `minecraft:cinnabar_bricks`
+- `minecraft:chiseled_cinnabar`
+- `minecraft:poplar_planks`
+- `minecraft:pale_oak_planks`
+- `minecraft:resin_block`
+- `minecraft:resin_bricks`
+- `minecraft:chiseled_resin_bricks`
+
+登録後、必要なら `tools/build_palette.py` で `palette_26.3.json` を再生成して正本の色と突き合わせる。
+
+### 5. `tools/build_palette.py`
+
 - 26.3 の `assets/minecraft/models/block/*.json` において、`textures` の値が `{"sprite": "...", "force_translucent": true}` 等の辞書構造である場合に対応。
 - 既定の `--version` を `26.3`、`--rules` を `data/palette/rules_26.3.json`、`--out` を `data/palette/palette_26.3.json` に設定。
