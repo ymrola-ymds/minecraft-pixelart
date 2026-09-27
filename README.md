@@ -1,9 +1,9 @@
 # minecraft-pixelart
 
-画像を Minecraft (Java Edition 26.3) のブロック配置に変換し、データパックとして書き出す CLI ツールです。
+画像を Minecraft (Java Edition 26.3 以降) のブロック配置に変換し、データパックとして書き出す CLI ツールです。
 
 > [!NOTE]
-> - 本ツールは **Java Edition 26.x**（26.1 〜 26.3 正式版・スナップショット等）に対応しています。Bedrock Edition (統合版) には対応していません。
+> - 本ツールは **Java Edition 26.3 以降**（26.3 正式版・スナップショット等）に対応しています。Bedrock Edition (統合版) には対応していません。
 > - Mod は不要で、生成されたデータパックをワールドの `datapacks/` に入れるだけで使用できます。
 
 ---
